@@ -79,6 +79,8 @@ export default function Sidebar({
                 alt={img.alt}
                 width={320}
                 height={180}
+                loading="eager"
+                unoptimized
                 className="h-28 w-full object-cover sm:h-32"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
