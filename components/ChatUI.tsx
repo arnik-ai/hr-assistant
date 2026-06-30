@@ -106,7 +106,7 @@ export default function ChatUI({ onMenu }: { onMenu: () => void }) {
       {/* ورودی */}
       <div className="px-4 pb-5 md:px-8">
         <div className="mx-auto max-w-3xl">
-          <div className="glass-strong flex items-end gap-2 rounded-3xl border border-brand-400/50 p-2 shadow-glow">
+          <div className="flex items-end gap-2 rounded-3xl border-2 border-brand-400/60 bg-white p-2 shadow-glow-lg ring-1 ring-white/40 focus-within:border-brand-500">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -118,7 +118,7 @@ export default function ChatUI({ onMenu }: { onMenu: () => void }) {
               }}
               rows={1}
               placeholder="سؤال خود را درباره‌ی حقوق، قرارداد یا قانون کار بنویسید…"
-              className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] text-slate-100 placeholder:text-slate-500 focus:outline-none"
+              className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none"
             />
             <button
               onClick={() => handleSend(input)}
