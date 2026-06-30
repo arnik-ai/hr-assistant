@@ -6,6 +6,7 @@ import { ArrowUp, Sparkles, FileText, Calculator, Scale, ShieldAlert, Menu } fro
 import type { ChatMessage } from "@/lib/types";
 import { sendMessage } from "@/lib/api";
 import MessageBubble from "./MessageBubble";
+import BackButton from "./BackButton";
 
 const SUGGESTIONS = [
   { icon: Calculator, text: "اضافه‌کار ۱۰ ساعت با مزد مبنای ۱۲ میلیون چقدر می‌شود؟" },
@@ -68,6 +69,7 @@ export default function ChatUI({ onMenu }: { onMenu: () => void }) {
       {/* هدر */}
       <header className="glass flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5">
         <div className="flex items-center gap-2.5">
+          <BackButton />
           <button
             onClick={onMenu}
             aria-label="منو"
