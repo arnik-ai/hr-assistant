@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageSquare, LayoutDashboard, Users, LogOut, Sparkles } from "lucide-react";
+import { MessageSquare, LayoutDashboard, Users, LogOut, Sparkles, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/auth";
 
@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/", label: "گفتگو", icon: MessageSquare },
   { href: "/dashboard", label: "داشبورد", icon: LayoutDashboard },
   { href: "/employees", label: "کارمندان", icon: Users },
+  { href: "/recruitment", label: "جذب", icon: Briefcase },
 ];
 
 export default function AppNav() {

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, ShieldCheck, X, LayoutDashboard, Users } from "lucide-react";
+import { Plus, Sparkles, ShieldCheck, X, LayoutDashboard, Users, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const IMAGES = [
@@ -80,6 +80,13 @@ export default function Sidebar({
           >
             <Users className="h-[18px] w-[18px]" />
             کارمندان
+          </Link>
+          <Link
+            href="/recruitment"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+          >
+            <Briefcase className="h-[18px] w-[18px]" />
+            جذب و استخدام
           </Link>
         </nav>
 
