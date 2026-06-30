@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, ShieldCheck, X } from "lucide-react";
+import { Plus, Sparkles, ShieldCheck, X, LayoutDashboard, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const IMAGES = [
@@ -63,6 +64,24 @@ export default function Sidebar({
           <Plus className="h-4 w-4 transition group-hover:rotate-90" />
           گفتگوی جدید
         </button>
+
+        {/* ناوبری */}
+        <nav className="flex flex-col gap-1">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+          >
+            <LayoutDashboard className="h-[18px] w-[18px]" />
+            داشبورد
+          </Link>
+          <Link
+            href="/employees"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+          >
+            <Users className="h-[18px] w-[18px]" />
+            کارمندان
+          </Link>
+        </nav>
 
         {/* عکس‌ها */}
         <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
