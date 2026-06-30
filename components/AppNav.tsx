@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/lib/auth";
 
 const LINKS = [
-  { href: "/", label: "گفتگو", icon: MessageSquare },
-  { href: "/dashboard", label: "داشبورد", icon: LayoutDashboard },
-  { href: "/employees", label: "کارمندان", icon: Users },
-  { href: "/recruitment", label: "جذب", icon: Briefcase },
+  { href: "/", label: "گفتگو", title: "پرسیدن سؤال از دستیار هوشمند", icon: MessageSquare },
+  { href: "/dashboard", label: "داشبورد", title: "نمای کلی وضعیت شرکت", icon: LayoutDashboard },
+  { href: "/employees", label: "کارمندان", title: "مدیریت کارکنان شرکت", icon: Users },
+  { href: "/recruitment", label: "جذب", title: "آگهی استخدام، نامزدها و مصاحبه", icon: Briefcase },
 ];
 
 export default function AppNav() {
@@ -35,6 +35,7 @@ export default function AppNav() {
             <Link
               key={l.href}
               href={l.href}
+              title={l.title}
               className={cn(
                 "flex items-center gap-1.5 rounded-xl px-3 py-2 text-[13px] transition",
                 active
