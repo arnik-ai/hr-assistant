@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
 // فونت وزیرمتن (محلی) — وزن‌های معمولی و توپر
 const vazir = localFont({
@@ -32,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={`${vazir.variable} dark`}>
       <body className="app-bg font-sans text-slate-100 antialiased">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

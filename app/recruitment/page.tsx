@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Briefcase,
   Users,
@@ -25,11 +26,6 @@ import {
   createInterview,
   generateJD,
   screenResume,
-  type JobPosting,
-  type Candidate,
-  type Interview,
-  type JDResult,
-  type ScreenResult,
 } from "@/lib/recruitment";
 import { cn } from "@/lib/utils";
 
@@ -64,11 +60,8 @@ export default function RecruitmentPage() {
       <AppNav />
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-8">
         <h1 className="mb-1 text-2xl font-bold text-slate-100">جذب و استخدام</h1>
-        <p className="mb-6 text-sm text-slate-400">
-          آگهی‌ها، نامزدها، مصاحبه‌ها و ابزارهای هوشمند
-        </p>
+        <p className="mb-6 text-sm text-slate-400">آگهی‌ها، نامزدها، مصاحبه‌ها و ابزارهای هوشمند</p>
 
-        {/* تب‌ها */}
         <div className="mb-6 flex flex-wrap gap-2">
           {TABS.map((t) => (
             <button
@@ -76,9 +69,7 @@ export default function RecruitmentPage() {
               onClick={() => setTab(t.key)}
               className={cn(
                 "flex items-center gap-2 rounded-2xl border px-4 py-2 text-[13px] transition",
-                tab === t.key
-                  ? "border-brand-400/60 bg-white/10 text-white"
-                  : "border-white/10 text-slate-400 hover:bg-white/5",
+                tab === t.key ? "border-brand-400/60 bg-white/10 text-white" : "border-white/10 text-slate-400 hover:bg-white/5",
               )}
             >
               <t.icon className="h-4 w-4" />
@@ -96,75 +87,70 @@ export default function RecruitmentPage() {
   );
 }
 
-function ErrorBox({ msg }: { msg: string }) {
+function ErrorBox() {
   return (
     <div className="mb-4 flex items-center gap-2 rounded-2xl bg-amber-500/10 px-4 py-3 text-[13px] text-amber-300 ring-1 ring-amber-500/20">
       <AlertCircle className="h-4 w-4 shrink-0" />
-      {msg} — <Link href="/login" className="underline">ورود</Link>
+      برای دیدن اطلاعات ابتدا وارد شوید — <Link href="/login" className="underline">ورود</Link>
     </div>
   );
 }
-
 function Panel({ children }: { children: React.ReactNode }) {
+  return <div className="glass rounded-3xl border border-brand-400/40 p-5">{children}</div>;
+}
+function Loading() {
   return (
-    <div className="glass rounded-3xl border border-brand-400/40 p-5">{children}</div>
+    <div className="flex items-center justify-center gap-2 p-8 text-slate-400">
+      <Loader2 className="h-5 w-5 animate-spin" /> در حال بارگذاری…
+    </div>
+  );
+}
+function Empty({ icon: Icon, text }: { icon: typeof Briefcase; text: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2 p-10 text-center text-slate-400">
+      <Icon className="h-9 w-9 opacity-40" />
+      {text}
+    </div>
   );
 }
 
 // ---------- تب آگهی‌ها ----------
 function JobsTab() {
-  const [items, setItems] = useState<JobPosting[]>([]);
+  const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  async function load() {
-    setLoading(true);
-    try {
-      setItems(await listJobs());
-      setErr(null);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await createJob({ title, department: department || undefined });
+  const { data: items = [], isLoading, isError } = useQuery({ queryKey: ["jobs"], queryFn: listJobs });
+  const mut = useMutation({
+    mutationFn: createJob,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       setTitle("");
       setDepartment("");
-      await load();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+  });
 
   return (
     <div className="flex flex-col gap-4">
-      {err && <ErrorBox msg={err} />}
+      {isError && <ErrorBox />}
       <Panel>
-        <form onSubmit={add} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            mut.mutate({ title, department: department || undefined });
+          }}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        >
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان شغل *" required className={inputCls} />
           <input value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="واحد" className={inputCls} />
-          <button type="submit" disabled={saving || !title} className={btnCls}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          <button type="submit" disabled={mut.isPending || !title} className={btnCls}>
+            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             ثبت آگهی
           </button>
         </form>
       </Panel>
       <Panel>
-        {loading ? (
+        {isLoading ? (
           <Loading />
         ) : items.length === 0 ? (
           <Empty icon={Briefcase} text="هنوز آگهی‌ای ثبت نشده." />
@@ -190,58 +176,40 @@ function JobsTab() {
 
 // ---------- تب نامزدها ----------
 function CandidatesTab() {
-  const [items, setItems] = useState<Candidate[]>([]);
+  const qc = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  async function load() {
-    setLoading(true);
-    try {
-      setItems(await listCandidates());
-      setErr(null);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await createCandidate({ full_name: fullName, email: email || undefined });
+  const { data: items = [], isLoading, isError } = useQuery({ queryKey: ["candidates"], queryFn: listCandidates });
+  const mut = useMutation({
+    mutationFn: createCandidate,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["candidates"] });
       setFullName("");
       setEmail("");
-      await load();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+  });
 
   return (
     <div className="flex flex-col gap-4">
-      {err && <ErrorBox msg={err} />}
+      {isError && <ErrorBox />}
       <Panel>
-        <form onSubmit={add} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            mut.mutate({ full_name: fullName, email: email || undefined });
+          }}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        >
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="نام نامزد *" required className={inputCls} />
           <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ایمیل" className={inputCls} />
-          <button type="submit" disabled={saving || !fullName} className={btnCls}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          <button type="submit" disabled={mut.isPending || !fullName} className={btnCls}>
+            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             افزودن نامزد
           </button>
         </form>
       </Panel>
       <Panel>
-        {loading ? (
+        {isLoading ? (
           <Loading />
         ) : items.length === 0 ? (
           <Empty icon={Users} text="هنوز نامزدی ثبت نشده." />
@@ -267,59 +235,34 @@ function CandidatesTab() {
 
 // ---------- تب مصاحبه‌ها ----------
 function InterviewsTab() {
-  const [items, setItems] = useState<Interview[]>([]);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const qc = useQueryClient();
   const [candidateId, setCandidateId] = useState("");
   const [when, setWhen] = useState("");
   const [interviewer, setInterviewer] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  async function load() {
-    setLoading(true);
-    try {
-      const [iv, cs] = await Promise.all([listInterviews(), listCandidates()]);
-      setItems(iv);
-      setCandidates(cs);
-      setErr(null);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
-    }
-  }
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await createInterview({
-        candidate_id: candidateId,
-        scheduled_at: new Date(when).toISOString(),
-        interviewer: interviewer || undefined,
-      });
+  const { data: items = [], isLoading, isError } = useQuery({ queryKey: ["interviews"], queryFn: listInterviews });
+  const { data: candidates = [] } = useQuery({ queryKey: ["candidates"], queryFn: listCandidates });
+  const mut = useMutation({
+    mutationFn: createInterview,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["interviews"] });
       setWhen("");
       setInterviewer("");
-      await load();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+  });
 
-  const nameOf = (id: string) =>
-    candidates.find((c) => c.id === id)?.full_name ?? "نامزد";
+  const nameOf = (id: string) => candidates.find((c) => c.id === id)?.full_name ?? "نامزد";
 
   return (
     <div className="flex flex-col gap-4">
-      {err && <ErrorBox msg={err} />}
+      {isError && <ErrorBox />}
       <Panel>
-        <form onSubmit={add} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            mut.mutate({ candidate_id: candidateId, scheduled_at: when, interviewer: interviewer || undefined });
+          }}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        >
           <select value={candidateId} onChange={(e) => setCandidateId(e.target.value)} required className={inputCls}>
             <option value="">انتخاب نامزد *</option>
             {candidates.map((c) => (
@@ -328,14 +271,14 @@ function InterviewsTab() {
           </select>
           <PersianDateTimePicker value={when} onChange={setWhen} placeholder="تاریخ و ساعت مصاحبه *" />
           <input value={interviewer} onChange={(e) => setInterviewer(e.target.value)} placeholder="مصاحبه‌کننده" className={inputCls} />
-          <button type="submit" disabled={saving || !candidateId || !when} className={btnCls}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}
+          <button type="submit" disabled={mut.isPending || !candidateId || !when} className={btnCls}>
+            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}
             زمان‌بندی مصاحبه
           </button>
         </form>
       </Panel>
       <Panel>
-        {loading ? (
+        {isLoading ? (
           <Loading />
         ) : items.length === 0 ? (
           <Empty icon={CalendarClock} text="مصاحبه‌ای زمان‌بندی نشده." />
@@ -373,49 +316,40 @@ function GenerateJDCard() {
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [seniority, setSeniority] = useState("");
-  const [result, setResult] = useState<JDResult | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function run(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setErr(null);
-    try {
-      setResult(await generateJD({ title, department: department || undefined, seniority: seniority || undefined }));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const mut = useMutation({ mutationFn: generateJD });
 
   return (
     <Panel>
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-300">
         <FileText className="h-4 w-4" /> تولید شرح وظایف با هوش مصنوعی
       </div>
-      <form onSubmit={run} className="flex flex-col gap-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          mut.mutate({ title, department: department || undefined, seniority: seniority || undefined });
+        }}
+        className="flex flex-col gap-3"
+      >
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان شغل *" required className={inputCls} />
         <div className="grid grid-cols-2 gap-3">
           <input value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="واحد" className={inputCls} />
           <input value={seniority} onChange={(e) => setSeniority(e.target.value)} placeholder="سطح (جونیور/ارشد)" className={inputCls} />
         </div>
-        <button type="submit" disabled={loading || !title} className={btnCls}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+        <button type="submit" disabled={mut.isPending || !title} className={btnCls}>
+          {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           تولید
         </button>
       </form>
-      {err && <p className="mt-3 text-[13px] text-amber-300">{err}</p>}
-      {result && (
+      {mut.isError && <p className="mt-3 text-[13px] text-amber-300">اتصال به سرویس هوش مصنوعی برقرار نشد.</p>}
+      {mut.data && (
         <div className="mt-4 flex flex-col gap-3 text-[13px] leading-7 text-slate-300">
           <div>
             <p className="mb-1 font-semibold text-slate-200">شرح وظایف:</p>
-            <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{result.description}</p>
+            <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{mut.data.description}</p>
           </div>
           <div>
             <p className="mb-1 font-semibold text-slate-200">شرایط احراز:</p>
-            <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{result.requirements}</p>
+            <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{mut.data.requirements}</p>
           </div>
         </div>
       )}
@@ -426,69 +360,39 @@ function GenerateJDCard() {
 function ScreenResumeCard() {
   const [resume, setResume] = useState("");
   const [requirements, setRequirements] = useState("");
-  const [result, setResult] = useState<ScreenResult | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function run(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setErr(null);
-    try {
-      setResult(await screenResume({ resume_text: resume, requirements }));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "خطا");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const mut = useMutation({ mutationFn: screenResume });
 
   return (
     <Panel>
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-300">
         <ClipboardCheck className="h-4 w-4" /> غربالگری رزومه با هوش مصنوعی
       </div>
-      <form onSubmit={run} className="flex flex-col gap-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          mut.mutate({ resume_text: resume, requirements });
+        }}
+        className="flex flex-col gap-3"
+      >
         <textarea value={requirements} onChange={(e) => setRequirements(e.target.value)} placeholder="شرایط شغل *" required rows={2} className={inputCls} />
         <textarea value={resume} onChange={(e) => setResume(e.target.value)} placeholder="متن رزومه *" required rows={4} className={inputCls} />
-        <button type="submit" disabled={loading || !resume || !requirements} className={btnCls}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}
+        <button type="submit" disabled={mut.isPending || !resume || !requirements} className={btnCls}>
+          {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}
           غربالگری
         </button>
       </form>
-      {err && <p className="mt-3 text-[13px] text-amber-300">{err}</p>}
-      {result && (
+      {mut.isError && <p className="mt-3 text-[13px] text-amber-300">اتصال به سرویس هوش مصنوعی برقرار نشد.</p>}
+      {mut.data && (
         <div className="mt-4 flex flex-col gap-2 text-[13px] text-slate-300">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-emerald-400">{result.score}</span>
+            <span className="text-2xl font-bold text-emerald-400">{mut.data.score}</span>
             <span className="text-slate-400">/ ۱۰۰</span>
           </div>
-          <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{result.summary}</p>
-          {result.strengths.length > 0 && (
-            <p className="text-emerald-300">نقاط قوت: {result.strengths.join("، ")}</p>
-          )}
-          {result.gaps.length > 0 && (
-            <p className="text-amber-300">شکاف‌ها: {result.gaps.join("، ")}</p>
-          )}
+          <p className="whitespace-pre-wrap rounded-xl bg-white/[0.03] p-3">{mut.data.summary}</p>
+          {mut.data.strengths.length > 0 && <p className="text-emerald-300">نقاط قوت: {mut.data.strengths.join("، ")}</p>}
+          {mut.data.gaps.length > 0 && <p className="text-amber-300">شکاف‌ها: {mut.data.gaps.join("، ")}</p>}
         </div>
       )}
     </Panel>
-  );
-}
-
-// ---------- کمکی ----------
-function Loading() {
-  return (
-    <div className="flex items-center justify-center gap-2 p-8 text-slate-400">
-      <Loader2 className="h-5 w-5 animate-spin" /> در حال بارگذاری…
-    </div>
-  );
-}
-function Empty({ icon: Icon, text }: { icon: typeof Briefcase; text: string }) {
-  return (
-    <div className="flex flex-col items-center gap-2 p-10 text-center text-slate-400">
-      <Icon className="h-9 w-9 opacity-40" />
-      {text}
-    </div>
   );
 }
