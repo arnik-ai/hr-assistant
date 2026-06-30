@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Trash2, AlertCircle, Loader2, Users } from "lucide-react";
+import { Plus, Trash2, AlertCircle, Loader2, Users, CheckCircle } from "lucide-react";
 import AppNav from "@/components/AppNav";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   listEmployees,
   createEmployee,
@@ -11,6 +12,7 @@ import {
   type Employee,
 } from "@/lib/employees";
 import { formatToman } from "@/lib/utils";
+import { useAuthGuard } from "@/lib/authGuard";
 
 const CONTRACT_LABELS: Record<string, string> = {
   permanent: "دائم",
@@ -23,10 +25,13 @@ const CONTRACT_LABELS: Record<string, string> = {
 };
 
 export default function EmployeesPage() {
+  const ready = useAuthGuard();
   const [items, setItems] = useState<Employee[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   // فرم افزودن
   const [fullName, setFullName] = useState("");
@@ -49,8 +54,16 @@ export default function EmployeesPage() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    if (ready) load();
+  }, [ready]);
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +79,8 @@ export default function EmployeesPage() {
       setPosition("");
       setBaseWage("");
       setShowForm(false);
+      setSuccess("کارمند با موفقیت ثبت شد ✓");
+      setTimeout(() => setSuccess(null), 4000);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "ثبت ناموفق بود");
@@ -74,10 +89,15 @@ export default function EmployeesPage() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function confirmDelete() {
+    const id = confirmId;
+    setConfirmId(null);
+    if (!id) return;
     try {
       await deleteEmployee(id);
       setItems((prev) => prev.filter((x) => x.id !== id));
+      setSuccess("کارمند حذف شد ✓");
+      setTimeout(() => setSuccess(null), 4000);
     } catch {
       setError("حذف ناموفق بود");
     }
@@ -111,6 +131,13 @@ export default function EmployeesPage() {
           </div>
         )}
 
+        {success && (
+          <div className="mb-4 flex items-center gap-2 rounded-2xl bg-emerald-500/10 px-4 py-3 text-[13px] text-emerald-300 ring-1 ring-emerald-500/20">
+            <CheckCircle className="h-4 w-4 shrink-0" />
+            {success}
+          </div>
+        )}
+
         {/* فرم افزودن */}
         {showForm && (
           <form
@@ -130,13 +157,20 @@ export default function EmployeesPage() {
               placeholder="سمت"
               className="rounded-2xl border-2 border-brand-400/40 bg-white px-4 py-2.5 text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-500"
             />
-            <input
-              value={baseWage}
-              onChange={(e) => setBaseWage(e.target.value)}
-              placeholder="مزد مبنا (ریال)"
-              type="number"
-              className="rounded-2xl border-2 border-brand-400/40 bg-white px-4 py-2.5 text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-500"
-            />
+            <div>
+              <input
+                value={baseWage}
+                onChange={(e) => setBaseWage(e.target.value)}
+                placeholder="مزد مبنا (ریال)"
+                type="number"
+                className="w-full rounded-2xl border-2 border-brand-400/40 bg-white px-4 py-2.5 text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-500"
+              />
+              {baseWage && (
+                <p className="mt-1 px-2 text-[12px] text-emerald-300">
+                  {formatToman(Number(baseWage))} ریال
+                </p>
+              )}
+            </div>
             <select
               value={contractType}
               onChange={(e) => setContractType(e.target.value)}
@@ -194,7 +228,7 @@ export default function EmployeesPage() {
                     </td>
                     <td className="px-4 py-3 text-left">
                       <button
-                        onClick={() => handleDelete(emp.id)}
+                        onClick={() => setConfirmId(emp.id)}
                         className="rounded-lg p-2 text-slate-500 transition hover:bg-red-500/10 hover:text-red-400"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -207,6 +241,14 @@ export default function EmployeesPage() {
           )}
         </div>
       </main>
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        title="حذف کارمند"
+        message="آیا از حذف این کارمند مطمئن هستید؟ این کار قابل بازگشت نیست."
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmId(null)}
+      />
     </div>
   );
 }

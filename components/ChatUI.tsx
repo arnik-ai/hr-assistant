@@ -82,9 +82,9 @@ export default function ChatUI({ onMenu }: { onMenu: () => void }) {
             <p className="text-[11px] text-slate-500">مبتنی بر قانون کار ایران</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-400 ring-1 ring-emerald-500/20">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
-          آنلاین
+        <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] text-amber-300 ring-1 ring-amber-500/20">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse-dot" />
+          نسخه نمایشی
         </div>
       </header>
 

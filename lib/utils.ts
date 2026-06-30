@@ -10,3 +10,8 @@ export function cn(...inputs: ClassValue[]) {
 export function formatToman(value: number): string {
   return new Intl.NumberFormat("fa-IR").format(value);
 }
+
+/** عدد ساده به ارقام فارسی */
+export function faNumber(value: number): string {
+  return new Intl.NumberFormat("fa-IR").format(value);
+}

@@ -14,6 +14,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import AppNav from "@/components/AppNav";
+import PersianDateTimePicker from "@/components/PersianDateTimePicker";
+import { useAuthGuard } from "@/lib/authGuard";
 import {
   listJobs,
   createJob,
@@ -46,7 +48,16 @@ const btnCls =
   "flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-brand-600 to-brand-500 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition enabled:hover:shadow-glow-lg disabled:opacity-50";
 
 export default function RecruitmentPage() {
+  const ready = useAuthGuard();
   const [tab, setTab] = useState<Tab>("jobs");
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -315,7 +326,7 @@ function InterviewsTab() {
               <option key={c.id} value={c.id}>{c.full_name}</option>
             ))}
           </select>
-          <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} required className={inputCls} />
+          <PersianDateTimePicker value={when} onChange={setWhen} placeholder="تاریخ و ساعت مصاحبه *" />
           <input value={interviewer} onChange={(e) => setInterviewer(e.target.value)} placeholder="مصاحبه‌کننده" className={inputCls} />
           <button type="submit" disabled={saving || !candidateId || !when} className={btnCls}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />}

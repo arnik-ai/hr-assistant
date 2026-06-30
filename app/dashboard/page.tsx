@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import AppNav from "@/components/AppNav";
 import { getDashboardStats, type DashboardStats } from "@/lib/employees";
+import { useAuthGuard } from "@/lib/authGuard";
+import { faNumber } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 // کارت‌های آمار — هرکدام یک توضیح ساده دارد
 const CARDS = [
@@ -82,16 +85,26 @@ const ACTIONS = [
 ] as const;
 
 export default function DashboardPage() {
+  const ready = useAuthGuard();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!ready) return;
     getDashboardStats()
       .then(setStats)
       .catch((e) => setError(e instanceof Error ? e.message : "خطا"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [ready]);
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-400">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -136,7 +149,7 @@ export default function DashboardPage() {
                 <c.icon className="h-5 w-5 text-white" />
               </div>
               <div className="text-3xl font-bold text-slate-100">
-                {loading ? "…" : stats ? (stats[c.key] as number) : "—"}
+                {loading ? "…" : stats ? faNumber(stats[c.key] as number) : "—"}
               </div>
               <div className="mt-1 text-[14px] font-medium text-slate-200">
                 {c.label}
