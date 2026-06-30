@@ -33,7 +33,7 @@ export default function MessageBubble({ message }: { message: ChatMessage }) {
       </div>
 
       {/* محتوای پیام */}
-      <div className={cn("flex max-w-[78%] flex-col", isUser && "items-end")}>
+      <div className={cn("flex max-w-[85%] flex-col sm:max-w-[78%]", isUser && "items-end")}>
         <div
           className={cn(
             "rounded-3xl px-4 py-3 text-[15px] leading-7",

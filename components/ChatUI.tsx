@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Sparkles, FileText, Calculator, Scale, ShieldAlert } from "lucide-react";
+import { ArrowUp, Sparkles, FileText, Calculator, Scale, ShieldAlert, Menu } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 import { sendMessage } from "@/lib/api";
 import MessageBubble from "./MessageBubble";
@@ -14,7 +14,7 @@ const SUGGESTIONS = [
   { icon: ShieldAlert, text: "بند «انصراف از سنوات» در قرارداد قانونی است؟" },
 ];
 
-export default function ChatUI() {
+export default function ChatUI({ onMenu }: { onMenu: () => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,10 +66,19 @@ export default function ChatUI() {
   return (
     <div className="flex h-full flex-1 flex-col">
       {/* هدر */}
-      <header className="glass flex items-center justify-between px-6 py-3.5">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-100">گفتگو با دستیار</h2>
-          <p className="text-[11px] text-slate-500">مبتنی بر قانون کار ایران</p>
+      <header className="glass flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onMenu}
+            aria-label="منو"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-400/40 text-slate-300 transition hover:bg-white/10 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-100">گفتگو با دستیار</h2>
+            <p className="text-[11px] text-slate-500">مبتنی بر قانون کار ایران</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-400 ring-1 ring-emerald-500/20">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
@@ -138,7 +147,7 @@ function WelcomeScreen({ onPick }: { onPick: (t: string) => void }) {
       <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-400 to-fuchsia-500 shadow-glow-lg animate-float">
         <Sparkles className="h-8 w-8 text-white" />
       </div>
-      <h1 className="text-4xl font-bold text-gradient">دستیار هوشمند HR</h1>
+      <h1 className="text-3xl font-bold text-gradient sm:text-4xl">دستیار هوشمند HR</h1>
       <p className="mt-2 text-sm font-medium tracking-[0.2em] text-slate-400">
         HR SMART ASSISTANT
       </p>
