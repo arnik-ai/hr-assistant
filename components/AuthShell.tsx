@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, ShieldCheck } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import BackButton from "./BackButton";
 
 export default function AuthShell({
   title,
@@ -22,6 +23,10 @@ export default function AuthShell({
         transition={{ duration: 0.4 }}
         className="glass-strong w-full max-w-md rounded-3xl border border-brand-400/50 p-7 shadow-glow-lg"
       >
+        <div className="mb-4">
+          <BackButton />
+        </div>
+
         {/* لوگو */}
         <div className="mb-6 flex flex-col items-center text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-400 to-fuchsia-500 shadow-glow animate-float">
@@ -34,12 +39,6 @@ export default function AuthShell({
         {children}
 
         <div className="mt-6 text-center text-[13px] text-slate-400">{footer}</div>
-
-        {/* برند شرکت */}
-        <div className="mt-6 flex items-center justify-center gap-2 border-t border-white/10 pt-4 text-[11px] text-slate-500">
-          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-          شرکت نیکان ایمن سلامت — عضو پارک علم و فناوری
-        </div>
       </motion.div>
     </main>
   );
