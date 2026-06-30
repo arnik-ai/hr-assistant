@@ -22,7 +22,13 @@ body {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  /* اسکرول عمودی صفحات بلند فعال؛ اسکرول‌بار در RTL سمت چپ قرار می‌گیرد */
+  overflow-x: hidden;
+  overflow-y: auto;
+  direction: rtl;
+  /* اسکرول‌بار ظریف برای فایرفاکس */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(129, 140, 248, 0.5) transparent;
 }
 
 /* پس‌زمینه‌ی گرادیانی مدرن ۲۰۲۶ — نور بنفش/نیلی محو */
