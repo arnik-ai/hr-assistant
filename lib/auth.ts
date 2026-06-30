@@ -1,6 +1,14 @@
 // ارتباط فرانت با ماژول احراز هویت بک‌اند (FastAPI)
 
+import { DEMO } from "./config";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+
+const DEMO_TOKENS: TokenResponse = {
+  access_token: "demo",
+  refresh_token: "demo",
+  token_type: "bearer",
+};
 
 export interface TokenResponse {
   access_token: string;
@@ -57,6 +65,10 @@ async function handle(res: Response): Promise<TokenResponse> {
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
+  if (DEMO) {
+    saveTokens(DEMO_TOKENS);
+    return DEMO_TOKENS;
+  }
   const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -66,6 +78,10 @@ export async function login(email: string, password: string): Promise<TokenRespo
 }
 
 export async function register(payload: RegisterPayload): Promise<TokenResponse> {
+  if (DEMO) {
+    saveTokens(DEMO_TOKENS);
+    return DEMO_TOKENS;
+  }
   const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -84,6 +100,16 @@ export interface CurrentUser {
 }
 
 export async function getMe(): Promise<CurrentUser | null> {
+  if (DEMO) {
+    return {
+      id: "demo",
+      org_id: "demo",
+      email: "demo@company.com",
+      full_name: "مدیر نمونه",
+      role: "owner",
+      is_active: true,
+    };
+  }
   const token = getAccessToken();
   if (!token) return null;
   const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
